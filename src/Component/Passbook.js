@@ -29,18 +29,19 @@ export default function PassbookPrint() {
     setRows(updated);
   };
 
-  // ✅ NEW API
+  // ✅ Correct react-to-print usage
   const handlePrint = useReactToPrint({
     contentRef: printRef,
     documentTitle: "Passbook",
+    removeAfterPrint: true,
   });
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
       <h1 className="text-xl font-semibold mb-4">Passbook Printing Software</h1>
 
-      {/* ENTRY TABLE */}
-      <table className="w-full border text-sm mb-6">
+      {/* ENTRY TABLE (SCREEN ONLY) */}
+      <table className="w-full border text-sm mb-6 print:hidden">
         <thead className="bg-gray-100">
           <tr>
             <th className="border p-2">Date</th>
@@ -87,7 +88,8 @@ export default function PassbookPrint() {
         </tbody>
       </table>
 
-      <div className="flex gap-4 mb-8">
+      {/* ACTION BUTTONS (SCREEN ONLY) */}
+      <div className="flex gap-4 mb-8 print:hidden">
         <button
           onClick={addRow}
           className="px-4 py-2 bg-blue-600 text-white rounded"
@@ -102,38 +104,37 @@ export default function PassbookPrint() {
         </button>
       </div>
 
-      {/* PRINT CONTENT */}
-      <div className="hidden">
-        <div ref={printRef} className="p-4 text-[11px]">
-          <h2 className="text-center font-semibold mb-2">
-            System Generated Record – For Internal Use Only
-          </h2>
+      {/* ✅ PRINT CONTENT (ALWAYS IN DOM) */}
+      <div ref={printRef} className="hidden print:block text-[11px] p-4">
+        <h2 className="text-center font-semibold mb-2">
+          System Generated Record – For Internal Use Only
+        </h2>
 
-          <table className="w-full border-collapse border">
-            <thead>
-              <tr>
-                <th className="border p-1">Date</th>
-                <th className="border p-1">Particulars</th>
-                <th className="border p-1">Debit</th>
-                <th className="border p-1">Credit</th>
-                <th className="border p-1">Balance</th>
+        <table className="w-full border-collapse border">
+          <thead>
+            <tr>
+              <th className="border p-1">Date</th>
+              <th className="border p-1">Particulars</th>
+              <th className="border p-1">Debit</th>
+              <th className="border p-1">Credit</th>
+              <th className="border p-1">Balance</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row, i) => (
+              <tr key={i}>
+                <td className="border p-1">{row.date}</td>
+                <td className="border p-1">{row.particulars}</td>
+                <td className="border p-1 text-right">{row.debit}</td>
+                <td className="border p-1 text-right">{row.credit}</td>
+                <td className="border p-1 text-right">{row.balance}</td>
               </tr>
-            </thead>
-            <tbody>
-              {rows.map((row, i) => (
-                <tr key={i}>
-                  <td className="border p-1">{row.date}</td>
-                  <td className="border p-1">{row.particulars}</td>
-                  <td className="border p-1 text-right">{row.debit}</td>
-                  <td className="border p-1 text-right">{row.credit}</td>
-                  <td className="border p-1 text-right">{row.balance}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+            ))}
+          </tbody>
+        </table>
       </div>
 
+      {/* PRINT CONFIG */}
       <style jsx global>{`
         @media print {
           @page {

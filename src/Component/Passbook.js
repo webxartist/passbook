@@ -13,22 +13,28 @@ export default function PassbookPrint() {
   ]);
 
   /* ===============================
-     LOAD FROM LOCAL STORAGE
+     LOAD DATA FROM LOCAL STORAGE
   =============================== */
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      try {
-        setRows(JSON.parse(saved));
-      } catch {}
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          setRows(JSON.parse(saved));
+        } catch (err) {
+          console.error("Invalid localStorage data", err);
+        }
+      }
     }
   }, []);
 
   /* ===============================
-     SAVE TO LOCAL STORAGE
+     SAVE DATA TO LOCAL STORAGE
   =============================== */
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(rows));
+    if (typeof window !== "undefined") {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(rows));
+    }
   }, [rows]);
 
   /* ===============================
@@ -60,36 +66,29 @@ export default function PassbookPrint() {
   };
 
   /* ===============================
-     PRINT (CORRECT WAY)
+     PRINT HANDLER
   =============================== */
   const handlePrint = useReactToPrint({
-    content: () => printRef.current,
+    contentRef: printRef,
     documentTitle: "passbook",
-    pageStyle: `
-      @page { size: A6; margin: 0; }
-      body { margin: 0; }
-    `,
+    removeAfterPrint: false,
+    onAfterPrint: () => {
+      // OPTIONAL: clear storage after print
+      // localStorage.removeItem(STORAGE_KEY);
+    },
   });
-
-  const safePrint = () => {
-    if (!printRef.current) {
-      alert("Print content not ready");
-      return;
-    }
-    handlePrint();
-  };
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
-      {/* SCREEN TABLE */}
-      <table className="w-full text-xl mb-6 print:hidden">
-        <thead>
+      {/* ENTRY TABLE (SCREEN ONLY) */}
+      <table className="w-full text-2xl mb-6 print:hidden">
+        <thead className="bg-gray-100">
           <tr>
-            <th>Date</th>
-            <th>Particulars</th>
-            <th>Debit</th>
-            <th>Credit</th>
-            <th>Balance</th>
+            <th className="p-2">Date</th>
+            <th className="p-2">Particulars</th>
+            <th className="p-2">Debit</th>
+            <th className="p-2">Credit</th>
+            <th className="p-2">Balance</th>
           </tr>
         </thead>
         <tbody>
@@ -99,12 +98,15 @@ export default function PassbookPrint() {
                 <input
                   type="date"
                   value={row.date}
+                  className="w-full p-1 outline-none"
                   onChange={(e) => updateRow(i, "date", e.target.value)}
                 />
               </td>
               <td>
                 <input
                   value={row.particulars}
+                  className="w-full text-center p-1 outline-none"
+                  placeholder="Details"
                   onChange={(e) => updateRow(i, "particulars", e.target.value)}
                 />
               </td>
@@ -112,6 +114,7 @@ export default function PassbookPrint() {
                 <input
                   type="number"
                   value={row.debit}
+                  className="w-full text-center p-1 outline-none"
                   onChange={(e) => updateRow(i, "debit", e.target.value)}
                 />
               </td>
@@ -119,50 +122,82 @@ export default function PassbookPrint() {
                 <input
                   type="number"
                   value={row.credit}
+                  className="w-full text-center p-1 outline-none"
                   onChange={(e) => updateRow(i, "credit", e.target.value)}
                 />
               </td>
-              <td>{row.balance}</td>
+              <td className="p-1 text-right">{row.balance}</td>
             </tr>
           ))}
         </tbody>
       </table>
 
-      {/* BUTTONS */}
-      <div className="flex gap-4 print:hidden">
-        <button onClick={addRow}>Add Row</button>
-        <button onClick={safePrint}>Print</button>
+      {/* ACTION BUTTONS */}
+      <div className="flex gap-4 mb-8 print:hidden">
+        <button
+          onClick={addRow}
+          className="px-4 py-2 bg-blue-600 text-white rounded"
+        >
+          Add Row
+        </button>
+        <button
+          onClick={handlePrint}
+          className="px-4 py-2 bg-green-600 text-white rounded"
+        >
+          Print
+        </button>
       </div>
 
-      {/* PRINT AREA */}
-      <div ref={printRef} className="hidden print:block text-[11px]">
-        <h3 style={{ textAlign: "center" }}>
-          System Generated Record – Internal Use
-        </h3>
+      {/* PRINT CONTENT */}
+      <div
+        ref={printRef}
+        className="hidden print:block text-[11px]"
+        style={{
+          paddingTop: "0px",
+          paddingLeft: "16px",
+          paddingRight: "16px",
+        }}
+      >
+        <h2 className="text-center font-semibold mb-2">
+          System Generated Record – For Internal Use Only
+        </h2>
 
-        <table width="100%">
+        <table className="w-full border-collapse">
           <thead>
             <tr>
-              <th>Date</th>
-              <th>Particulars</th>
-              <th>Debit</th>
-              <th>Credit</th>
-              <th>Balance</th>
+              <th className="p-1">Date</th>
+              <th className="p-1">Particulars</th>
+              <th className="p-1">Debit</th>
+              <th className="p-1">Credit</th>
+              <th className="p-1">Balance</th>
             </tr>
           </thead>
           <tbody>
             {rows.map((row, i) => (
               <tr key={i}>
-                <td>{row.date}</td>
-                <td>{row.particulars}</td>
-                <td>{row.debit}</td>
-                <td>{row.credit}</td>
-                <td>{row.balance}</td>
+                <td className="p-1 text-center">{row.date}</td>
+                <td className="p-1">{row.particulars}</td>
+                <td className="p-1 text-center">{row.debit}</td>
+                <td className="p-1 text-center">{row.credit}</td>
+                <td className="p-1 text-center">{row.balance}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      {/* PRINT CONFIG */}
+      <style jsx global>{`
+        @media print {
+          @page {
+            size: A6;
+            margin: 0;
+          }
+          body {
+            margin: 0;
+          }
+        }
+      `}</style>
     </div>
   );
 }

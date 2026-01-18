@@ -69,7 +69,7 @@ export default function PassbookPrint() {
      PRINT HANDLER
   =============================== */
   const handlePrint = useReactToPrint({
-    contentRef: printRef,
+    content: () => printRef.current,
     documentTitle: "passbook",
     removeAfterPrint: false,
     onAfterPrint: () => {

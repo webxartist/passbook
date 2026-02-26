@@ -169,7 +169,7 @@ export default function PassbookPrint() {
               <th className="p-1">Particulars</th>
               <th className="p-1">Debit</th>
               <th className="p-1">Credit</th>
-              <th className="p-1">Balance</th>
+              <th className="p-1">Balance ₹</th>
             </tr>
           </thead>
           <tbody>
